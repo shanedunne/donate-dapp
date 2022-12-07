@@ -1,34 +1,77 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+//SPDX-License-Identifier: Unlicense
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
+// contracts/BuyMeACoffee.sol
+pragma solidity ^0.8.0;
 
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
+// Address on Goerli: ...
 
-    event Withdrawal(uint amount, uint when);
+contract Donate {
+    // Event to emit when a Memo is created.
+    event NewMemo(
+        address indexed from,
+        uint256 timestamp,
+        string name,
+        string message
+    );
+    
+    // Memo struct.
+    struct Memo {
+        address from;
+        uint256 timestamp;
+        string name;
+        string message;
+    }
+    
+    // Address of contract deployer. Marked payable so that
+    // we can withdraw to this address later.
+    address payable owner;
 
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
+    // List of all memos received from coffee purchases.
+    Memo[] memos;
 
-        unlockTime = _unlockTime;
+    constructor() {
+        // Store the address of the deployer as a payable address.
+        // When we withdraw funds, we'll withdraw here.
         owner = payable(msg.sender);
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+    /**
+     * @dev fetches all stored memos
+     */
+    function getMemos() public view returns (Memo[] memory) {
+        return memos;
+    }
 
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
+    /**
+     * @dev donate to the contract owner (sends an ETH tip and leaves a memo)
+     * @param _name name of the donater
+     * @param _message message with donation
+     */
+    function sendDonation(string memory _name, string memory _message) public payable {
+        // Must accept more than 0 ETH for a donation.
+        require(msg.value > 0, "can't donate 0");
 
-        emit Withdrawal(address(this).balance, block.timestamp);
+        // Add the memo to storage!
+        memos.push(Memo(
+            msg.sender,
+            block.timestamp,
+            _name,
+            _message
+        ));
 
-        owner.transfer(address(this).balance);
+        // Emit a NewMemo event with details about the memo.
+        emit NewMemo(
+            msg.sender,
+            block.timestamp,
+            _name,
+            _message
+        );
+    }
+
+    /**
+     * @dev send the entire balance stored in this contract to the owner
+     */
+    function withdrawDonations() public {
+        require(owner.send(address(this).balance));
     }
 }
