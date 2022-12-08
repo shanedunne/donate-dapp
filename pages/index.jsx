@@ -6,10 +6,11 @@ import styles from "../styles/Home.module.css";
 
 export default function Home() {
   // Contract Address & ABI
-  const contractAddress = "0xF62538114392a17d96cAA53Da7ed3DC41c2c97e8";
+  const contractAddress = "0x174Ef0e8BBF0b5Ff2C5659475b73826acB8f18FB";
   const contractABI = abi.abi;
   // Component state
   const [currentAccount, setCurrentAccount] = useState("");
+  const [contractOwner, setContractOwner] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [memos, setMemos] = useState([]);
@@ -36,6 +37,7 @@ export default function Home() {
       } else {
         console.log("make sure MetaMask is connected");
       }
+      getOwner();
     } catch (error) {
       console.log("error: ", error);
     }
@@ -54,11 +56,34 @@ export default function Home() {
       });
 
       setCurrentAccount(accounts[0]);
+      getOwner();
     } catch (error) {
       console.log(error);
     }
   };
 
+  const getOwner = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const checkForOwner = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        let confirmedContractOwner = await checkForOwner.owner();
+        setContractOwner(confirmedContractOwner);
+        console.log(`contract owner = ${confirmedContractOwner}`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // make a donation to the smart contract
   const makeDonation = async () => {
     try {
       const { ethereum } = window;
@@ -88,6 +113,39 @@ export default function Home() {
         // Clear the form fields.
         setName("");
         setMessage("");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // function to check if the wallet connected belongs to the contract owner
+
+  const withdrawFunds = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const withdrawAsOwner = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        console.log(`Owner = ${contractOwner}`);
+        console.log(`Connected wallet = ${currentAccount}`);
+
+        if (contractOwner == currentAccount) {
+          const withdrawTxn = await withdrawAsOwner.withdrawDonations();
+
+          await withdrawTxn.wait();
+
+          console.log("mined. Txn: ", withdrawTxn.hash);
+          console.log("Donations withdrawn to the owner!");
+        } else {
+          console.log("something went wrong");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -197,7 +255,14 @@ export default function Home() {
               </div>
               <div>
                 <button type="button" onClick={makeDonation}>
-                  Send 1 Coffee for 0.001ETH
+                  Send donation of 0.001ETH
+                </button>
+              </div>
+            </form>
+            <form>
+              <div>
+                <button type="button" onClick={withdrawFunds}>
+                  Withdraw funds
                 </button>
               </div>
             </form>

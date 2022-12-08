@@ -10,7 +10,7 @@ async function getBalance(provider, address) {
 
 async function main() {
   // Get the contract that has been deployed to Goerli.
-  const contractAddress = "0xF62538114392a17d96cAA53Da7ed3DC41c2c97e8";
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const contractABI = abi.abi;
 
   // Get the node connection and wallet connection.
@@ -42,7 +42,7 @@ async function main() {
   // Withdraw funds if there are funds to withdraw.
   if (contractBalance !== "0.0") {
     console.log("withdrawing funds..");
-    const withdrawTxn = await donate.withdrawTips();
+    const withdrawTxn = await donate.withdrawDonations();
     await withdrawTxn.wait();
   } else {
     console.log("no funds to withdraw!");

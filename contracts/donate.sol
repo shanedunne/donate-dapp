@@ -24,7 +24,7 @@ contract Donate {
     
     // Address of contract deployer. Marked payable so that
     // we can withdraw to this address later.
-    address payable owner;
+    address payable public owner;
 
     // List of all memos received from coffee purchases.
     Memo[] memos;
@@ -33,6 +33,13 @@ contract Donate {
         // Store the address of the deployer as a payable address.
         // When we withdraw funds, we'll withdraw here.
         owner = payable(msg.sender);
+    }
+
+    /**
+     * @dev fetches the owner address
+     */
+    function getOwner() public view returns (address) {
+        return owner;
     }
 
     /**
