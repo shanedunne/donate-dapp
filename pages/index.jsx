@@ -133,10 +133,8 @@ export default function Home() {
           signer
         );
 
-        console.log(`Owner = ${contractOwner}`);
-        console.log(`Connected wallet = ${currentAccount}`);
-
-        if (contractOwner == currentAccount) {
+        if (contractOwner.toLowerCase() == currentAccount) {
+          console.log("You are the owner. Transaction processing...");
           const withdrawTxn = await withdrawAsOwner.withdrawDonations();
 
           await withdrawTxn.wait();
@@ -144,7 +142,7 @@ export default function Home() {
           console.log("mined. Txn: ", withdrawTxn.hash);
           console.log("Donations withdrawn to the owner!");
         } else {
-          console.log("something went wrong");
+          console.log("you are not the owner");
         }
       }
     } catch (error) {
@@ -281,7 +279,7 @@ export default function Home() {
               key={idx}
               style={{
                 border: "2px solid",
-                "border-radius": "5px",
+                borderRadius: "5px",
                 padding: "5px",
                 margin: "5px",
               }}
