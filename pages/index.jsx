@@ -76,7 +76,6 @@ export default function Home() {
 
         let confirmedContractOwner = await checkForOwner.owner();
         setContractOwner(confirmedContractOwner);
-        console.log(`contract owner = ${confirmedContractOwner}`);
       }
     } catch (error) {
       console.log(error);
